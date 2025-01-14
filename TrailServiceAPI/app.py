@@ -6,6 +6,10 @@ from feature import features_blueprint, trail_features_blueprint
 # Creates the Flask app instance
 app = create_app()
 
+@app.route("/")
+def home():
+    return render_template("home.html")
+
 # Registers each blueprint under a specific URL prefix
 app.register_blueprint(users_blueprint, url_prefix="/api/users")
 app.register_blueprint(trails_blueprint, url_prefix="/api/trails")
@@ -29,4 +33,4 @@ with app.app_context():
 
 # Starts the server on port 5000 when this file is run directly
 if __name__ == "__main__":
-    connexion_app.run(port=5000)
+    connexion_app.run(port=8000)
