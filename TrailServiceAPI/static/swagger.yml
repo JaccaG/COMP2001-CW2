@@ -1,0 +1,630 @@
+openapi: 3.0.0
+info:
+  title: Trail Management API
+  description: Trail Management Service API for COMP2001 CW2 - Jacca Goulding
+  version: "1.0.0"
+  # Holds basic API info, version and a simple descrption for what's going on
+servers:
+  - url: /api
+  # Tells the server where our API endpoints are based
+
+paths:
+  # Used for user logins and returning a token
+  /login:
+    post:
+      operationId: "authenticator.authenticate"
+      tags:
+        - "Authentication"
+      summary: "User Login"
+      description: "Authenticate the user and return a token."
+      requestBody:
+        description: "User login details"
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                email:
+                  type: string
+                  description: "The user's email address"
+                password:
+                  type: string
+                  description: "The user's password"
+      responses:
+        "200":
+          description: "Authentication successful, returns a token"
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  token:
+                    type: string
+                    description: "JWT token for authentication"
+        "400":
+          description: "Invalid request payload"
+        "401":
+          description: "Invalid credentials"
+        "500":
+          description: "Failed to authenticate"
+
+  /users:
+    get:
+      security:
+        - BearerAuth: []
+      summary: Get all users
+      operationId: users.get_users
+      tags:
+        - Users
+      responses:
+        "200":
+          description: A list of users
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  type: object
+                  properties:
+                    UserID:
+                      type: integer
+                      description: Unique identifier for the user
+                    Name:
+                      type: string
+                      description: Name of the user
+                    Email_address:
+                      type: string
+                      description: Email address of the user
+                    Role:
+                      type: string
+                      description: Role of the user (optional)
+    post:
+      security:
+        - BearerAuth: []
+      summary: Create a new user
+      operationId: users.create_user
+      tags:
+        - Users
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                Name:
+                  type: string
+                Email_address:
+                  type: string
+                Password:
+                  type: string
+                Role:
+                  type: string
+      responses:
+        "201":
+          description: User created successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  UserID:
+                    type: integer
+                    description: Automatically assigned unique identifier
+                  Name:
+                    type: string
+                  Email_address:
+                    type: string
+                  Role:
+                    type: string
+        "400":
+          description: Email already exists
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+
+  /users/{user_id}:
+    get:
+      security:
+        - BearerAuth: []
+      summary: Retrieve a user by ID
+      operationId: users.get_user_by_id
+      tags:
+        - Users
+      parameters:
+        - name: user_id
+          in: path
+          required: true
+          schema:
+            type: integer
+          description: The ID of the user to retrieve
+      responses:
+        "200":
+          description: User retrieved successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  UserID:
+                    type: integer
+                    description: Unique identifier for the user
+                  Name:
+                    type: string
+                    description: Name of the user
+                  Email_address:
+                    type: string
+                    description: Email address of the user
+                  Role:
+                    type: string
+                    description: Role of the user
+        "404":
+          description: User not found
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+    put:
+      security:
+        - BearerAuth: []
+      summary: Update an existing user
+      operationId: users.update_user
+      tags:
+        - Users
+      parameters:
+        - name: user_id
+          in: path
+          required: true
+          schema:
+            type: integer
+          description: The ID of the user to update
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                Name:
+                  type: string
+                Email_address:
+                  type: string
+                Password:
+                  type: string
+                Role:
+                  type: string
+      responses:
+        "200":
+          description: User updated successfully
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/User"
+        "400":
+          description: Invalid input or email already exists
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+        "404":
+          description: User not found
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+    delete:
+      security:
+        - BearerAuth: []
+      summary: Delete a user by ID
+      operationId: users.delete_user
+      tags:
+        - Users
+      parameters:
+        - name: user_id
+          in: path
+          required: true
+          schema:
+            type: integer
+          description: The ID of the user to delete
+      responses:
+        "200":
+          description: User deleted successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+        "404":
+          description: User not found
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+
+  /trails:
+    get:
+      security:
+        - BearerAuth: []
+      summary: Get all trails
+      operationId: trails.get_trails
+      tags:
+        - Trails
+      responses:
+        "200":
+          description: A list of trails
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Trail"
+    post:
+      security:
+        - BearerAuth: []
+      summary: Create a new trail
+      operationId: trails.create_trail
+      tags:
+        - Trails
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                TrailName:
+                  type: string
+                  description: Name of the trail
+                TrailSummary:
+                  type: string
+                  description: Summary of the trail
+                TrailDescription:
+                  type: string
+                  description: Detailed description of the trail
+                Difficulty:
+                  type: string
+                  description: Difficulty level of the trail
+                Location:
+                  type: string
+                  description: Location of the trail
+                Length:
+                  type: number
+                  format: float
+                  description: Length of the trail
+                ElevationGain:
+                  type: integer
+                  description: Elevation gain of the trail
+                RouteType:
+                  type: string
+                  description: Type of route (e.g., loop, out-and-back)
+      responses:
+        "201":
+          description: Trail created successfully
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Trail"
+        "400":
+          description: Missing required field
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+
+  /trails/{trail_id}:
+    get:
+      security:
+        - BearerAuth: []
+      summary: Retrieve a trail by ID
+      operationId: trails.get_trail
+      tags:
+        - Trails
+      parameters:
+        - name: trail_id
+          in: path
+          required: true
+          schema:
+            type: integer
+          description: The ID of the trail to retrieve
+      responses:
+        "200":
+          description: Trail retrieved successfully
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Trail"
+        "404":
+          description: Trail not found
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+    put:
+      security:
+        - BearerAuth: []
+      summary: Update an existing trail
+      operationId: trails.update_trail
+      tags:
+        - Trails
+      parameters:
+        - name: trail_id
+          in: path
+          required: true
+          schema:
+            type: integer
+          description: The ID of the trail to update
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                TrailName:
+                  type: string
+                TrailSummary:
+                  type: string
+                TrailDescription:
+                  type: string
+                Difficulty:
+                  type: string
+                Location:
+                  type: string
+                Length:
+                  type: number
+                  format: float
+                ElevationGain:
+                  type: integer
+                RouteType:
+                  type: string
+                Pt1_Lat:
+                  type: number
+                  format: float
+                Pt1_Long:
+                  type: number
+                  format: float
+                Pt1_Desc:
+                  type: string
+                Pt2_Lat:
+                  type: number
+                  format: float
+                Pt2_Long:
+                  type: number
+                  format: float
+                Pt2_Desc:
+                  type: string
+      responses:
+        "200":
+          description: Trail updated successfully
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Trail"
+        "400":
+          description: Invalid input
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+        "404":
+          description: Trail not found
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+    delete:
+      security:
+        - BearerAuth: []
+      summary: Delete a trail by ID
+      operationId: trails.delete_trail
+      tags:
+        - Trails
+      parameters:
+        - name: trail_id
+          in: path
+          required: true
+          schema:
+            type: integer
+          description: The ID of the trail to delete
+      responses:
+        "200":
+          description: Trail deleted successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+        "404":
+          description: Trail not found
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+
+  # Endpoint for retrieving a list of features in the system
+  /features:
+    get:
+      security:
+        - BearerAuth: []
+      summary: Get all features
+      operationId: feature.get_all_features
+      tags:
+        - Features
+      responses:
+        "200":
+          description: A list of features
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Feature"
+        "500":
+          description: Server error
+
+  # Endpoint for retrieving all trail-feature links
+  /trail_features:
+    get:
+      security:
+        - BearerAuth: []
+      summary: Get all trail-feature links
+      operationId: feature.get_all_trail_features
+      tags:
+        - TrailFeatures
+      responses:
+        "200":
+          description: A list of trail-to-feature mappings
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/TrailFeature"
+        "500":
+          description: Server error
+
+components:
+  securitySchemes:
+    BearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+      x-bearerInfoFunc: authenticator.validate_token 
+      # Tells Connexion to call authenticator.validate_token for verifying tokens
+
+  schemas:
+    # Reprsentation of a single user object
+    User:
+      type: object
+      properties:
+        UserID:
+          type: integer
+          description: Unique identifier for the user
+        Name:
+          type: string
+          description: Name of the user
+        Email_address:
+          type: string
+          description: Email address of the user
+        Password:
+          type: string
+          description: Password for the user (excluded in GET)
+        Role:
+          type: string
+          description: Role of the user (optional)
+
+    # Representation of a single trail
+    Trail:
+      type: object
+      properties:
+        TrailID:
+          type: integer
+          description: Unique identifier for the trail
+        TrailName:
+          type: string
+          description: Name of the trail
+        TrailSummary:
+          type: string
+          description: Short summary of the trail
+        TrailDescription:
+          type: string
+          description: Detailed description of the trail
+        Difficulty:
+          type: string
+          description: Difficulty level of the trail
+        Location:
+          type: string
+          description: Location of the trail
+        Length:
+          type: number
+          format: float
+          description: Length of the trail in kilometers
+        ElevationGain:
+          type: integer
+          description: Elevation gain of the trail in meters
+        RouteType:
+          type: string
+          description: Route type (e.g., loop, out-and-back)
+        OwnerID:
+          type: integer
+          description: ID of the trail's owner (optional)
+        Pt1_Lat:
+          type: number
+          format: float
+          description: Latitude of point 1 (optional)
+        Pt1_Long:
+          type: number
+          format: float
+          description: Longitude of point 1 (optional)
+        Pt1_Desc:
+          type: string
+          description: Description of point 1 (optional)
+        Pt2_Lat:
+          type: number
+          format: float
+          description: Latitude of point 2 (optional)
+        Pt2_Long:
+          type: number
+          format: float
+          description: Longitude of point 2 (optional)
+        Pt2_Desc:
+          type: string
+          description: Description of point 2 (optional)
+
+    # Representation of a single feature
+    Feature:
+      type: object
+      properties:
+        TrailFeatureID:
+          type: integer
+          description: Unique identifier for the feature
+        TrailFeature:
+          type: string
+          description: The name/description of the feature (e.g. "Dog-friendly")
+
+    # Representation of how a trail links to a feature
+    TrailFeature:
+      type: object
+      properties:
+        TrailID:
+          type: integer
+          description: The ID of the trail
+        TrailFeatureID:
+          type: integer
+          description: The ID of the feature associated with that trail

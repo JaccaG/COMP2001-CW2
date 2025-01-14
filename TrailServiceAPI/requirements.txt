@@ -1,0 +1,7 @@
+connexion[swagger-ui]
+flask
+flask-sqlalchemy
+flask-marshmallow
+marshmallow-sqlalchemy
+flask-cors
+pyodbc
